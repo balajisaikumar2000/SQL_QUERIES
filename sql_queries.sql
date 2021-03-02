@@ -44,7 +44,13 @@ FROM
   DROP TABLE tablename;
 -- A specific example:
   DROP TABLE cats;
--- Be careful with the above  command ! they will delete the information in that table
+-- Be careful with the above  command ! they will delete  table itself;
+
+TRUNCATE TABLE table_name;      --this will delete information in the table ,leaving the table itself
+
+TRUNCATE TABLE cats;
+
+
   -- INSERTING DATA:
   -- The "formula":
 INSERT INTO
