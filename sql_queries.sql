@@ -846,3 +846,278 @@ FROM
 WHERE
   last_name REGEXP '[a-h]e';       --will return rows which contains 'e' and before 'e' there should be letters between a-h
 
+
+-- What is a NULL Value?
+-- A field with a NULL value is a field with no value.
+
+-- If a field in a table is optional, it is possible to insert a new record or update a record without adding a value to this field. Then, the field will be saved with a NULL value.
+
+-- Note: A NULL value is different from a zero value or a field that contains spaces. A field with a NULL value is one that has been left blank during record creation!
+
+-- How to Test for NULL Values?
+-- It is not possible to test for NULL values with comparison operators, such as =, <, or <>.
+
+-- We will have to use the IS NULL and IS NOT NULL operators instead.
+
+-- IS NULL Syntax:-
+SELECT column_names
+FROM table_name
+WHERE column_name IS NULL;
+
+-- IS NOT NULL Syntax:-
+SELECT column_names
+FROM table_name
+WHERE column_name IS NOT NULL;
+
+
+-- HAVING:-
+-- The HAVING clause was added to SQL because the WHERE keyword could not be used with aggregate functions.
+-- aggreagate functions are count(),sum(),avg(),min(),max()
+SELECT COUNT(CustomerID), Country
+FROM Customers
+GROUP BY Country
+HAVING COUNT(CustomerID) > 5;
+
+-- the above wont work if we replace having with where
+
+-- The EXISTS operator is used to test for the existence of any record in a subquery.
+
+-- The EXISTS operator returns true if the subquery returns one or more records.
+
+SELECT SupplierName                  --this query will give suppliername column if the subquery returns true and suppliername that is equal to the productname in the subquery)
+FROM Suppliers
+WHERE EXISTS (SELECT ProductName FROM Products WHERE Products.SupplierID = Suppliers.supplierID AND Price < 20);
+
+SELECT SupplierName              --this is same as above
+FROM Suppliers
+WHERE EXISTS (SELECT ProductName FROM Products WHERE Products.SupplierID = Suppliers.supplierID AND Price = 22);
+
+
+
+-- stored procedure;
+DELIMITER $$                        
+
+CREATE PROCEDURE GetCustomers()                 --here paranthesis must be ,other wise procedure won't work
+BEGIN                                            --in between the BEGIN and  END the query will start and end ,we can query whatever we want like joins, group by etc.,
+  SELECT 
+    customerName, 
+    city, 
+    state, 
+    postalCode, 
+    country
+  FROM
+    customers
+  ORDER BY customerName;    
+END$$
+DELIMITER ;
+
+CALL GetCustomers();                              --will execute the query,
+
+-- Create Table Using Another Table
+-- all values will be copied to new table with same schema
+-- we can use where statemnet to copy specific one's only
+CREATE TABLE new_table_name AS
+    SELECT column1, column2,...
+    FROM existing_table_name
+    WHERE ....;
+-- ex:-
+CREATE TABLE TestTable AS
+SELECT customername, contactname
+FROM customers;
+-- ex2:-
+CREATE TABLE TestTable2 AS
+SELECT customername, contactname
+FROM customers where 1=0;            --this will create new table with empty data and with the same schema
+
+-- ALTER TABLE:-
+-- The ALTER TABLE statement is used to add, delete, or modify columns in an existing table.
+
+-- The ALTER TABLE statement is also used to add and drop various constraints on an existing table.
+
+-- ADD:-
+ALTER TABLE table_name
+ADD column_name datatype;
+
+ALTER TABLE Customers
+ADD Email varchar(255);
+
+-- DROP:-
+ALTER TABLE table_name
+DROP COLUMN column_name;
+
+ALTER TABLE Customers
+DROP COLUMN Email;
+
+-- MODIFY COLUMN:-
+ALTER TABLE table_name
+MODIFY COLUMN column_name datatype;
+
+-- SQL Constraints
+-- SQL constraints are used to specify rules for the data in a table.
+
+-- NOT NULL - Ensures that a column cannot have a NULL value
+-- UNIQUE - Ensures that all values in a column are different
+-- PRIMARY KEY - A combination of a NOT NULL and UNIQUE. Uniquely identifies each row in a table
+-- FOREIGN KEY - Uniquely identifies a row/record in another table
+-- CHECK - Ensures that all values in a column satisfies a specific condition
+-- DEFAULT - Sets a default value for a column when no value is specified
+-- INDEX - Used to create and retrieve data from the database very quickly
+
+-- SQL CHECK Constraint
+-- The CHECK constraint is used to limit the value range that can be placed in a column.
+
+CREATE TABLE Persons (
+    ID int NOT NULL,
+    LastName varchar(255) NOT NULL,
+    FirstName varchar(255),
+    Age int,
+    CHECK (Age>=18)
+);
+
+ALTER TABLE Persons
+ADD CHECK (Age>=18);
+
+
+
+-- VIEWS:-
+-- SQL CREATE VIEW Statement
+-- In SQL, a view is a virtual table based on the result-set of an SQL statement.
+
+-- A view contains rows and columns, just like a real table. The fields in a view are
+--  fields from one or more real tables in the database.
+
+-- You can add SQL functions, WHERE, and JOIN statements to a view and present the data as if the data
+--  were coming from one single table.
+
+CREATE VIEW view_name AS
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition;
+
+CREATE VIEW Brazil Customers AS
+SELECT CustomerName, ContactName
+FROM Customers
+WHERE Country = 'Brazil';
+
+
+-- if we want see the view type the below command:-
+SHOW TABLES;                     --here view will also be under tables list
+
+SHOW FULL TABLES;                 --will show the view name as 'view'
+
+SELECT * FROM Brazil Customers;                 --will show our view(result table for our selection query)
+
+-- insert into select:-
+INSERT INTO table_name(column_list)
+SELECT 
+   select_list 
+FROM 
+   another_table
+WHERE
+   condition;
+
+-- ex:-
+INSERT INTO suppliers (                --suppliers table must have the all columns as same from the table it is selecting 
+    supplierName, 
+    phone, 
+    addressLine1,
+    addressLine2,
+    city
+)
+SELECT 
+    customerName,
+    phone,
+    addressLine1,
+    addressLine2,
+    city
+FROM 
+    customers
+WHERE 
+    country = 'USA' AND 
+    state = 'CA';
+
+-- FIELD():-
+SELECT 
+    orderNumber, 
+    status
+FROM
+    orders
+ORDER BY 
+    FIELD(status,
+        'In Process',
+        'On Hold',
+        'Cancelled',
+        'Resolved',
+        'Disputed',
+        'Shipped');
+
+-- returns the index of the status in the list 'In Process', 'On Hold', 'Cancelled', 'Resolved', 'Disputed', 'Shipped'
+
+
+
+-- MySQL INSERT ON DUPLICATE KEY UPDATE example:-
+CREATE TABLE devices (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100)
+);
+
+INSERT INTO devices(name)
+VALUES('Router F1'),('Switch 1'),('Switch 2');
+
+INSERT INTO 
+   devices(name) 
+VALUES 
+   ('Printer') 
+ON DUPLICATE KEY UPDATE name = 'Printer';
+
+
+
+-- triggers in udemy;-
+CREATE TRIGGER trigger_name 
+    trigger_time trigger_event ON table_name FOR EACH ROW
+    BEGIN
+    ...
+    END;
+
+-- ex:1:-
+create table users(
+username varchar(100),
+age int);
+insert into users(username,age) values('bobby',23);
+
+DELIMITER $$
+
+CREATE TRIGGER must_be_adult
+     BEFORE INSERT ON users FOR EACH ROW
+     BEGIN
+          IF NEW.age < 18                                  --NEW represents the row we are now inserting.it is like instance .it is similar to 'this' in javascript and 'self' in python
+          THEN
+              SIGNAL SQLSTATE '45000'                       ---this sqlstate '45000' means we created a condition which will give error if we voilate them
+                    SET MESSAGE_TEXT = 'Must be an adult!';   ---the text that associated with them
+          END IF;
+     END;
+$$
+
+DELIMITER ;
+
+insert into users(username,age) values('bobby',23);         ---this works fine cause here -> age is > 18
+
+insert into users(username,age) values('balaji',13);       ---this doesn't work and will give error because  here -> age <18 
+
+-- ex-2:-
+DELIMITER $$
+
+CREATE TRIGGER create_unfollow
+    AFTER DELETE ON follows FOR EACH ROW 
+BEGIN
+    INSERT INTO unfollows
+    SET follower_id = OLD.follower_id,
+        followee_id = OLD.followee_id;
+END$$
+
+DELIMITER ;
+
+SHOW TRIGGERS;
+
+DROP TRIGGER trigger_name;
+
